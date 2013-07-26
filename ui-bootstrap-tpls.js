@@ -1,5 +1,5 @@
 angular.module("ui.bootstrap", ["ui.bootstrap.tpls", "ui.bootstrap.transition","ui.bootstrap.collapse","ui.bootstrap.accordion","ui.bootstrap.alert","ui.bootstrap.buttons","ui.bootstrap.carousel","ui.bootstrap.datepicker","ui.bootstrap.dialog","ui.bootstrap.dropdownToggle","ui.bootstrap.modal","ui.bootstrap.pagination","ui.bootstrap.position","ui.bootstrap.tooltip","ui.bootstrap.popover","ui.bootstrap.progressbar","ui.bootstrap.rating","ui.bootstrap.tabs","ui.bootstrap.timepicker","ui.bootstrap.typeahead"]);
-angular.module("ui.bootstrap.tpls", ["template/accordion/accordion-group.html","template/accordion/accordion.html","template/alert/alert.html","template/carousel/carousel.html","template/carousel/slide.html","template/datepicker/datepicker.html","template/dialog/message.html","template/pagination/pager.html","template/pagination/pagination.html","template/tooltip/tooltip-html-unsafe-popup.html","template/tooltip/tooltip-popup.html","template/popover/popover.html","template/progressbar/bar.html","template/progressbar/progress.html","template/rating/rating.html","template/tabs/tab.html","template/tabs/tabset.html","template/timepicker/timepicker.html","template/typeahead/typeahead.html"]);
+angular.module("ui.bootstrap.tpls", ["template/accordion/accordion-group.html","template/accordion/accordion.html","template/alert/alert.html","template/carousel/carousel.html","template/carousel/slide.html","template/datepicker/datepicker.html","template/dialog/message.html","template/pagination/pager.html","template/pagination/pagination.html","template/tooltip/tooltip-html-unsafe-popup.html","template/tooltip/tooltip-popup.html","template/popover/popover-template.html","template/popover/popover.html","template/progressbar/bar.html","template/progressbar/progress.html","template/rating/rating.html","template/tabs/tab.html","template/tabs/tabset.html","template/timepicker/timepicker.html","template/typeahead/typeahead.html"]);
 angular.module('ui.bootstrap.transition', [])
 
 /**
@@ -1645,7 +1645,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
 
   // The options specified to the provider globally.
   var globalOptions = {};
-  
+
   /**
    * `options({})` allows global configuration of all tooltips in the
    * application.
@@ -1703,7 +1703,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
        */
       function setTriggers ( trigger ) {
         var show, hide;
-       
+
         show = trigger || options.trigger || defaultTriggerShow;
         if ( angular.isDefined ( options.trigger ) ) {
           hide = triggerMap[options.trigger] || show;
@@ -1722,13 +1722,14 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
 
       var startSym = $interpolate.startSymbol();
       var endSym = $interpolate.endSymbol();
-      var template = 
+      var template =
         '<'+ directiveName +'-popup '+
           'title="'+startSym+'tt_title'+endSym+'" '+
           'content="'+startSym+'tt_content'+endSym+'" '+
           'placement="'+startSym+'tt_placement'+endSym+'" '+
           'animation="tt_animation()" '+
-          'is-open="tt_isOpen"'+
+          'is-open="tt_isOpen" '+
+          'template="{{tt_template}}"'+
           '>'+
         '</'+ directiveName +'-popup>';
 
@@ -1753,7 +1754,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
               hideTooltipBind();
             }
           }
-          
+
           // Show the tooltip with delay if specified, otherwise show it immediately
           function showTooltipBind() {
             if ( scope.tt_popupDelay ) {
@@ -1768,7 +1769,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
               hide();
             });
           }
-          
+
           // Show the tooltip popup element.
           function show() {
             var position,
@@ -1786,11 +1787,11 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
             if ( transitionTimeout ) {
               $timeout.cancel( transitionTimeout );
             }
-            
+
             // Set the initial positioning.
             tooltip.css({ top: 0, left: 0, display: 'block' });
-            
-            // Now we add it to the DOM because need some info about it. But it's not 
+
+            // Now we add it to the DOM because need some info about it. But it's not
             // visible yet anyway.
             if ( appendToBody ) {
                 $body = $body || $document.find( 'body' );
@@ -1805,7 +1806,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
             // Get the height and width of the tooltip so we can center it.
             ttWidth = tooltip.prop( 'offsetWidth' );
             ttHeight = tooltip.prop( 'offsetHeight' );
-            
+
             // Calculate the tooltip's top and left coordinates to center it with
             // this directive.
             switch ( scope.tt_placement ) {
@@ -1847,11 +1848,11 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
 
             // Now set the calculated positioning.
             tooltip.css( ttPosition );
-              
+
             // And show the tooltip.
             scope.tt_isOpen = true;
           }
-          
+
           // Hide the tooltip popup element.
           function hide() {
             // First things first: we don't show it anymore.
@@ -1859,8 +1860,8 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
 
             //if tooltip is going to be shown after delay, we must cancel this
             $timeout.cancel( popupTimeout );
-            
-            // And now we remove it from the DOM. However, if we have animation, we 
+
+            // And now we remove it from the DOM. However, if we have animation, we
             // need to wait for it to expire beforehand.
             // FIXME: this is a placeholder for a port of the transitions library.
             if ( angular.isDefined( scope.tt_animation ) && scope.tt_animation() ) {
@@ -1931,6 +1932,9 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
               tooltip.remove();
             }
           });
+          attrs.$observe( prefix+'Template', function ( val ) {
+              scope.tt_template = val;
+          });
         }
       };
     };
@@ -1961,13 +1965,32 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position' ] )
 
 .directive( 'tooltipHtmlUnsafe', [ '$tooltip', function ( $tooltip ) {
   return $tooltip( 'tooltipHtmlUnsafe', 'tooltip', 'mouseenter' );
-}]);
+}])
 
 /**
- * The following features are still outstanding: popup delay, animation as a
- * function, placement as a function, inside, support for more triggers than
- * just mouse enter/leave, html popovers, and selector delegatation.
+ * Loads the provided template via $http, attaches it to the current element,
+ * and compiles it relative to a new sibling scope.
+ *
+ * For internal use only!
  */
+.directive( 'ttLoadTemplateInSibling', [ '$http', '$templateCache', '$compile', function ( $http, $templateCache, $compile ) {
+  return {
+    link: function ( scope, element, attrs ) {
+      var templateScope = scope.$parent.$new();
+
+      attrs.$observe( 'ttLoadTemplateInSibling', function ( val ) {
+        $http.get( val, { cache: $templateCache } )
+        .then( function( response ) {
+          element.html( response.data );
+          $compile( element.contents() )( templateScope );
+        });
+      });
+    }
+  };
+}])
+
+;
+
 angular.module( 'ui.bootstrap.popover', [ 'ui.bootstrap.tooltip' ] )
 .directive( 'popoverPopup', function () {
   return {
@@ -1977,9 +2000,25 @@ angular.module( 'ui.bootstrap.popover', [ 'ui.bootstrap.tooltip' ] )
     templateUrl: 'template/popover/popover.html'
   };
 })
-.directive( 'popover', [ '$compile', '$timeout', '$parse', '$window', '$tooltip', function ( $compile, $timeout, $parse, $window, $tooltip ) {
+
+.directive( 'popover', [ '$tooltip', function ( $tooltip ) {
   return $tooltip( 'popover', 'popover', 'click' );
-}]);
+}])
+
+.directive( 'popoverTemplatePopup', function () {
+  return {
+    restrict: 'EA',
+    replace: true,
+    scope: { title: '@', content: '@', placement: '@', animation: '&', isOpen: '&', template: '@' },
+    templateUrl: 'template/popover/popover-template.html'
+  };
+})
+
+.directive( 'popoverTemplate', [ '$tooltip', function ( $tooltip ) {
+  return $tooltip( 'popoverTemplate', 'popover', 'click' );
+}])
+
+;
 
 
 angular.module('ui.bootstrap.progressbar', ['ui.bootstrap.transition'])
@@ -3009,16 +3048,6 @@ angular.module("template/dialog/message.html", []).run(["$templateCache", functi
     "");
 }]);
 
-angular.module("template/modal/backdrop.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("template/modal/backdrop.html",
-    "<div class=\"modal-backdrop\"></div>");
-}]);
-
-angular.module("template/modal/window.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("template/modal/window.html",
-    "<div class=\"modal in\" ng-transclude></div>");
-}]);
-
 angular.module("template/pagination/pager.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/pagination/pager.html",
     "<div class=\"pager\">\n" +
@@ -3056,6 +3085,17 @@ angular.module("template/tooltip/tooltip-popup.html", []).run(["$templateCache",
     "");
 }]);
 
+angular.module("template/popover/popover-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("template/popover/popover-template.html",
+    "<div class=\"popover {{placement}}\" ng-class=\"{ in: isOpen(), fade: animation() }\">\n" +
+    "  <div class=\"arrow\"></div>\n" +
+    "\n" +
+    "  <div class=\"popover-inner\" tt-load-template-in-sibling=\"{{template}}\"></div>\n" +
+    "</div>\n" +
+    "\n" +
+    "");
+}]);
+
 angular.module("template/popover/popover.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/popover/popover.html",
     "<div class=\"popover {{placement}}\" ng-class=\"{ in: isOpen(), fade: animation() }\">\n" +
@@ -3087,30 +3127,11 @@ angular.module("template/rating/rating.html", []).run(["$templateCache", functio
     "");
 }]);
 
-angular.module("template/tabs/pane.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("template/tabs/pane.html",
-    "<div class=\"tab-pane\" ng-class=\"{active: selected}\" ng-show=\"selected\" ng-transclude></div>\n" +
-    "");
-}]);
-
 angular.module("template/tabs/tab.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/tabs/tab.html",
     "<li ng-class=\"{active: active, disabled: disabled}\">\n" +
     "  <a ng-click=\"select()\" tab-heading-transclude>{{heading}}</a>\n" +
     "</li>\n" +
-    "");
-}]);
-
-angular.module("template/tabs/tabs.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("template/tabs/tabs.html",
-    "<div class=\"tabbable\">\n" +
-    "  <ul class=\"nav nav-tabs\">\n" +
-    "    <li ng-repeat=\"pane in panes\" ng-class=\"{active:pane.selected}\">\n" +
-    "      <a ng-click=\"select(pane)\">{{pane.heading}}</a>\n" +
-    "    </li>\n" +
-    "  </ul>\n" +
-    "  <div class=\"tab-content\" ng-transclude></div>\n" +
-    "</div>\n" +
     "");
 }]);
 
